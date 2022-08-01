@@ -4,3 +4,4 @@ from . import models
 admin.site.register(models.Video)
 admin.site.register(models.Comment)
 admin.site.register(models.User)
+admin.site.register(models.Admin)

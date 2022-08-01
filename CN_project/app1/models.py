@@ -32,3 +32,5 @@ class Admin(models.Model):
     admin=models.OneToOneField(User, on_delete=models.CASCADE)
     register_status=(('Y','not confirmed'),('N','confirmed'))
     status=models.CharField(max_length=1, choices=register_status,default='N', help_text='Register status')
+    def __str__(self):
+        return self.user.username
