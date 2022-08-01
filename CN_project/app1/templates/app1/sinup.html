@@ -1,0 +1,12 @@
+<form action="{% url 'app1:signup' %}" method="post">
+{% csrf_token %}
+    <label for="uname" class="form-label">User_name</label>
+    <input type="text" class="form-control" id="username" name="username">
+
+    <label for="exampleInputPassword1" class="form-label">Password</label>
+    <input type="password" class="form-control" name="pwd" id="exampleInputPassword1">
+
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+            
+</form>
