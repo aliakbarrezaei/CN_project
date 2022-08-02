@@ -5,6 +5,7 @@ from . import models
 from django.http import HttpResponse,HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 import json
 # Create your views here.
 
@@ -75,6 +76,7 @@ def user_login(request):
     return HttpResponse(f'you need to log out first')
 
 @csrf_exempt
+@login_required
 def user_logout(request):
     logout(request)
     return HttpResponse(f'goodbye!')
@@ -137,5 +139,4 @@ def add_dislike(request):
 
 
         
-
 
