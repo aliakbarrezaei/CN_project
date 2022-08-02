@@ -9,7 +9,7 @@ import json
 # Create your views here.
 
 
-
+@csrf_exempt   
 def home(request):
     videos=models.Video.objects.all().order_by('-pub_date')
     all_videos=[]
@@ -78,7 +78,23 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return HttpResponse(f'goodbye!')
-        
+
+@csrf_exempt        
+def add_comment(request):
+    try:  
+        if request.method == 'POST':
+            video_id = request.POST['video_id']
+            comment = request.POST['comment']
+            video_obj = models.Video.objects.get(id=video_id)
+            user_obj = models.Users.objects.get(user__username=request.user)
+            create_comment = models.Comment.objects.create(video=video_obj, user=user_obj,comment=comment)
+            create_comment.save()
+            return HttpResponse('your comment sent')
+    except:
+        return HttpResponse('error')
+
+
+
 
         
 

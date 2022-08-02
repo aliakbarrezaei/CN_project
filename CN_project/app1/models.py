@@ -11,15 +11,15 @@ class Video(models.Model):
     likes=models.ManyToManyField(User, related_name='likes')
     dislike=models.ManyToManyField(User, related_name='dislike')
     def __str__(self):
-        return self.title
+        return '%s , %s' %(self.title,self.video_file)
 
 class Comment(models.Model):
     video=models.ForeignKey(Video, on_delete=models.CASCADE)
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    user=models.ForeignKey('Users', on_delete=models.CASCADE)
     comment=models.CharField(max_length=300)
 
     def __str__(self):
-        return self.user.username
+        return ('%s, %s ,%s') %(self.user.user,self.video,self.comment)
 
 class Users(models.Model):
     user=models.OneToOneField(User, on_delete=models.CASCADE)
