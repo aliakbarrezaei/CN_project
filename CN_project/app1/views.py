@@ -52,13 +52,31 @@ def signup(request):
         return HttpResponse(f'you need to log out first')
     return HttpResponse('error!!')
 
+
+@csrf_exempt
+def adminsignup(request):
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            try:
+                username = request.POST['username']
+                password = request.POST['password']
+                user = User.objects.create_user(username=username, password=password)
+                user.save()
+                admin=models.Admin(admin=user)
+                admin.save()
+                return HttpResponse(f'welcome {username}! you can login now.')
+            except:
+                return HttpResponse('error!!!')
+        return HttpResponse(f'you need to log out first')
+    return HttpResponse('error!!')
+
+
 @csrf_exempt
 def user_login(request):
     if not request.user.is_authenticated:
         if request.method == 'POST':
             username = request.POST['username']
             password = request.POST['password']
-
             check_user = authenticate(username= username, password= password)
             if check_user is not None:
                 try:
@@ -69,6 +87,28 @@ def user_login(request):
                     else:
                         login(request, check_user)
                         return HttpResponse(f'hi {username}!, you are striked.so you cant upload')
+                except:
+                    return HttpResponse(f'invalid username.')
+            else:
+                return HttpResponse(f'invalid username.')
+    return HttpResponse(f'you need to log out first')
+
+
+@csrf_exempt
+def admin_login(request):
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            username = request.POST['username']
+            password = request.POST['password']
+            check_user = authenticate(username= username, password= password)
+            if check_user is not None:
+                try:
+                    admin=models.Admin.objects.get(admin=check_user)
+                    if admin.status=='C':
+                        login(request, check_user)
+                        return HttpResponse(f'hi {username}!')
+                    else:
+                        return HttpResponse(f'hi {username}!,Your registration has not been confirmed')
                 except:
                     return HttpResponse(f'invalid username.')
             else:
@@ -139,4 +179,5 @@ def add_dislike(request):
 
 
         
+
 
