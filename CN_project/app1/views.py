@@ -93,6 +93,46 @@ def add_comment(request):
     except:
         return HttpResponse('error')
 
+@csrf_exempt
+def add_like(request):
+    try:
+        if request.method == 'POST':
+            video_id = request.POST['video_id']
+            user_obj = models.Users.objects.get(user__username=request.user)
+            video_obj = models.Video.objects.get(id=video_id)
+            if user_obj in video_obj.dislikes.all():
+                video_obj.dislikes.remove(user_obj)
+                video_obj.likes.add(user_obj)
+                return HttpResponse('your like add')
+            elif user_obj in video_obj.likes.all():
+                video_obj.likes.remove(user_obj)
+                return HttpResponse('your like remove')
+            else:
+                video_obj.likes.add(user_obj)
+                return HttpResponse('your like add')
+    except:
+        return HttpResponse('error')
+            
+@csrf_exempt
+def add_dislike(request):
+    try:
+        if request.method == 'POST':
+            video_id = request.POST['video_id']
+            user_obj = models.Users.objects.get(user__username=request.user)
+            video_obj = models.Video.objects.get(id=video_id)
+            if user_obj in video_obj.likes.all():
+                video_obj.likes.remove(user_obj)
+                video_obj.dislikes.add(user_obj)
+                return HttpResponse('your dislike add')
+            elif user_obj in video_obj.dislikes.all():
+                video_obj.likes.remove(user_obj)
+                return HttpResponse('your dislike remove')
+            else:
+                video_obj.dislikes.add(user_obj)
+                return HttpResponse('your dislike add')
+    except:
+        return HttpResponse('error')
+
 
 
 

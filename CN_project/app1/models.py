@@ -8,10 +8,10 @@ class Video(models.Model):
     title=models.CharField(max_length=100)
     video_file=models.FileField(upload_to='videos/')
     pub_date=models.DateField(auto_now_add=True)
-    likes=models.ManyToManyField(User, related_name='likes')
-    dislike=models.ManyToManyField(User, related_name='dislike')
+    likes=models.ManyToManyField('Users', related_name='likes')
+    dislikes=models.ManyToManyField('Users', related_name='dislike')
     def __str__(self):
-        return '%s , %s' %(self.title,self.video_file)
+        return '%s , %s,  like_count: %s, dislike_count: %s' %(self.title,self.video_file,self.likes.all().count(),self.dislikes.all().count())
 
 class Comment(models.Model):
     video=models.ForeignKey(Video, on_delete=models.CASCADE)
