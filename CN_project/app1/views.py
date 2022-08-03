@@ -60,7 +60,7 @@ def adminsignup(request):
             try:
                 username = request.POST['username']
                 password = request.POST['password']
-                user = User.objects.create_user(username=username, password=password)
+                user = User.objects.create_user(username=username, password=password, is_staff=True)
                 user.save()
                 admin=models.Admin(admin=user)
                 admin.save()
