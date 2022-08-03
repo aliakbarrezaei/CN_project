@@ -32,6 +32,9 @@ class Users(models.Model):
     unavailable_videos_count=models.IntegerField(default=0)
     def __str__(self):
         return self.user.username
+    class Meta:
+        verbose_name = 'User management'
+        verbose_name_plural = 'User management'
 
 class Admin(models.Model):
     admin=models.OneToOneField(User, on_delete=models.CASCADE)
@@ -39,3 +42,6 @@ class Admin(models.Model):
     status=models.CharField(max_length=1, choices=register_status,default='N', help_text='Register status')
     def __str__(self):
         return self.admin.username
+    class Meta:
+        verbose_name = 'Admin management'
+        verbose_name_plural = 'Admin management'
