@@ -1,24 +1,23 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib import messages
-from . import models
-from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-import json
-# Create your views here.
+from . import models
+import pathlib
 
 
-@csrf_exempt   
+@csrf_exempt
 def home(request):
-    videos=models.Video.objects.all().order_by('-pub_date')
-    all_videos=[]
+    videos = models.Video.objects.all().order_by('-pub_date')
+    all_videos = []
     for video in videos:
-        if video.status=='I':
+        if video.status == 'I':
             continue
-        all_videos+=[{'video ID':video.id,'Title':video.title,'publisher':video.user.user.username,'publication date':str(video.pub_date),'likes':video.likes.all().count(),'dislike':video.dislikes.all().count()}]
-    return HttpResponse(all_videos)
+        all_videos += [{'video ID': video.id, 'Title': video.title, 'publisher': video.user.user.username,
+                        'publish date': str(video.pub_date), 'likes': video.likes.all().count(),
+                        'dislike': video.dislikes.all().count()}]
+    return JsonResponse({'videos': all_videos})
 
 
 @csrf_exempt
@@ -28,8 +27,8 @@ def upload_video(request):
             title = request.POST['title']
             video_file = request.FILES['video_file']
             user_obj = models.Users.objects.get(user__username=request.user)
-            if user_obj.status=='N':
-                upload_video =models.Video(user=user_obj,title=title, video_file=video_file)
+            if user_obj.status == 'N':
+                upload_video = models.Video(user=user_obj, title=title, video_file=video_file)
                 upload_video.save()
                 return HttpResponse('The video has been uploaded.')
             else:
@@ -48,7 +47,7 @@ def signup(request):
                 password = request.POST['password']
                 user = User.objects.create_user(username=username, password=password)
                 user.save()
-                user=models.Users(user=user)
+                user = models.Users(user=user)
                 user.save()
                 return HttpResponse(f'welcome {username}! you can login now.')
             except:
@@ -66,7 +65,7 @@ def adminsignup(request):
                 password = request.POST['password']
                 user = User.objects.create_user(username=username, password=password, is_staff=True)
                 user.save()
-                admin=models.Admin(admin=user)
+                admin = models.Admin(admin=user)
                 admin.save()
                 return HttpResponse(f'welcome {username}! you can login now.')
             except:
@@ -81,11 +80,11 @@ def user_login(request):
         if request.method == 'POST':
             username = request.POST['username']
             password = request.POST['password']
-            check_user = authenticate(username= username, password= password)
+            check_user = authenticate(username=username, password=password)
             if check_user is not None:
                 try:
-                    user=models.Users.objects.get(user=check_user)
-                    if user.status=='N':
+                    user = models.Users.objects.get(user=check_user)
+                    if user.status == 'N':
                         login(request, check_user)
                         return HttpResponse(f'hi {username}!')
                     else:
@@ -104,11 +103,11 @@ def admin_login(request):
         if request.method == 'POST':
             username = request.POST['username']
             password = request.POST['password']
-            check_user = authenticate(username= username, password= password)
+            check_user = authenticate(username=username, password=password)
             if check_user is not None:
                 try:
-                    admin=models.Admin.objects.get(admin=check_user)
-                    if admin.status=='C':
+                    admin = models.Admin.objects.get(admin=check_user)
+                    if admin.status == 'C':
                         login(request, check_user)
                         return HttpResponse(f'hi {username}!')
                     else:
@@ -119,25 +118,28 @@ def admin_login(request):
                 return HttpResponse(f'invalid username.')
     return HttpResponse(f'you need to log out first')
 
+
 @csrf_exempt
 @login_required
 def user_logout(request):
     logout(request)
     return HttpResponse(f'goodbye!')
 
-@csrf_exempt        
+
+@csrf_exempt
 def add_comment(request):
-    try:  
+    try:
         if request.method == 'POST':
             video_id = request.POST['video_id']
             comment = request.POST['comment']
             video_obj = models.Video.objects.get(id=video_id)
             user_obj = models.Users.objects.get(user__username=request.user)
-            create_comment = models.Comment.objects.create(video=video_obj, user=user_obj,comment=comment)
+            create_comment = models.Comment.objects.create(video=video_obj, user=user_obj, comment=comment)
             create_comment.save()
             return HttpResponse('your comment sent')
     except:
         return HttpResponse('error')
+
 
 @csrf_exempt
 def add_like(request):
@@ -158,7 +160,8 @@ def add_like(request):
                 return HttpResponse('your like add')
     except:
         return HttpResponse('error')
-            
+
+
 @csrf_exempt
 def add_dislike(request):
     try:
@@ -179,6 +182,7 @@ def add_dislike(request):
     except:
         return HttpResponse('error')
 
+
 @csrf_exempt
 def add_label(request):
     try:
@@ -186,16 +190,17 @@ def add_label(request):
             video_id = request.POST['video_id']
             admin_obj = models.Admin.objects.get(admin__username=request.user)
             video_obj = models.Video.objects.get(id=video_id)
-            if video_obj.label=='U':
-                video_obj.label='L'
+            if video_obj.label == 'U':
+                video_obj.label = 'L'
                 video_obj.save()
                 return HttpResponse('label add')
             else:
-                video_obj.label='U'
+                video_obj.label = 'U'
                 video_obj.save()
                 return HttpResponse('label remove')
     except:
         return HttpResponse('error')
+
 
 @csrf_exempt
 def video_status(request):
@@ -204,15 +209,15 @@ def video_status(request):
             video_id = request.POST['video_id']
             admin_obj = models.Admin.objects.get(admin__username=request.user)
             video_obj = models.Video.objects.get(id=video_id)
-            if video_obj.status=='A':
-                video_obj.status='I'
+            if video_obj.status == 'A':
+                video_obj.status = 'I'
                 video_obj.save()
-                user_object=video_obj.user
-                if user_object.status=='N':
-                    user_object.unavailable_videos_count+=1
+                user_object = video_obj.user
+                if user_object.status == 'N':
+                    user_object.unavailable_videos_count += 1
                     user_object.save()
-                    if user_object.unavailable_videos_count==2:
-                        user_object.status='S'
+                    if user_object.unavailable_videos_count == 2:
+                        user_object.status = 'S'
                         user_object.save()
                         return HttpResponse('The video became unavailable,and user has been striked')
                 return HttpResponse('The video became unavailable')
@@ -223,37 +228,44 @@ def video_status(request):
 
 
 @csrf_exempt
-def watch_video(request,video_id):
+@login_required
+def watch_video(request, video_id):
     try:
-        video_obj=models.Video.objects.get(id=video_id)
-    except:
-        return HttpResponse('There is no video')
-    try:
-        user_obj=models.Users.objects.get(user__username=request.user)
-    except:
-        try:
-            admin_obj=models.Admin.objects.get(admin__username=request.user)
-        except:
-            return HttpResponse('You are not login to watch this video.')
-    video_comments= models.Comment.objects.filter(video=video_obj).order_by('-id')
-    video_likes=video_obj.likes.all().count()
-    video_dislikes=video_obj.dislikes.all().count()
+        video_obj = models.Video.objects.get(id=video_id)
+        if video_obj.video_status != 'I':
+            comments = models.Comment.objects.filter(video=video_obj).order_by('-id')
+            video_comments = [{'user': comment.user.user.username, 'comment': comment.comment} for comment in comments]
+            video_likes = video_obj.likes.all().count()
+            video_dislikes = video_obj.dislikes.all().count()
+            details = {'Title': video_obj.title,
+                       'publisher': video_obj.user.user.username,
+                       'publish date': str(video_obj.pub_date),
+                       'label': video_obj.label,
+                       'likes': video_likes,
+                       'dislikes': video_dislikes,
+                       'comments': video_comments }
+            base = str(pathlib.Path(__file__).parent.resolve()).replace('\\', '/').replace('/app1', '')
+            video_path = base + '/media/' + str(video_obj.video_file)
+            # print(video_path)
+            client = models.Client('127.0.0.1', 8001, video_path)
+            return JsonResponse({'details': details})
+
+        else:
+            return HttpResponse(f'video is inaccessible')
+    except models.Video.DoesNotExist:
+        return HttpResponse(f'There is no video with id={video_id}')
+
 
 @csrf_exempt
-def strike_resolving(request,username):
+def strike_resolving(request, username):
     try:
         admin_obj = models.Admin.objects.get(admin__username=request.user)
-        user_obj=models.Users.objects.get(user__username=username)
-        if user_obj.status=='S':
-            user_obj.status='N'
+        user_obj = models.Users.objects.get(user__username=username)
+        if user_obj.status == 'S':
+            user_obj.status = 'N'
             user_obj.save()
             return HttpResponse('The user removed from the strike mode')
         else:
             return HttpResponse('The user was not strike')
     except:
         return HttpResponse('error')
-
-      
-
-
-
