@@ -9,3 +9,5 @@ class UserManager(admin.ModelAdmin):
 class AdminManager(admin.ModelAdmin):
     list_display=('admin','status')
     list_filter=('status',)
+admin.site.register(models.Video)
+admin.site.register(models.Comment)
