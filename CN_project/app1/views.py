@@ -175,8 +175,39 @@ def add_dislike(request):
     except:
         return HttpResponse('error')
 
+@csrf_exempt
+def add_label(request):
+    try:
+        if request.method == 'POST':
+            video_id = request.POST['video_id']
+            admin_obj = models.Admin.objects.get(admin__username=request.user)
+            video_obj = models.Video.objects.get(id=video_id)
+            if video_obj.label=='U':
+                video_obj.label='L'
+                video_obj.save()
+                return HttpResponse('label add')
+            else:
+                video_obj.label='U'
+                video_obj.save()
+                return HttpResponse('label remove')
+    except:
+        return HttpResponse('error')
 
-
+@csrf_exempt
+def video_status(request):
+    try:
+        if request.method == 'POST':
+            video_id = request.POST['video_id']
+            admin_obj = models.Admin.objects.get(admin__username=request.user)
+            video_obj = models.Video.objects.get(id=video_id)
+            if video_obj.status=='A':
+                video_obj.status='I'
+                video_obj.save()
+                return HttpResponse('The video became unavailable')
+            else:
+                return HttpResponse('The video was unavailable')
+    except:
+        return HttpResponse('error')
 
         
 
