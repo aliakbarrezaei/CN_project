@@ -257,8 +257,3 @@ def strike_resolving(request,username):
 
 
 
-
-# # video_comments = Comment.objects.filter(post=video_obj).order_by('-id')
-# #     return JsonResponse({'comment':create_comment.comment, 'count_comments':video_comments.count()})
-
-# #return JsonResponse({'is_liked':is_liked,'likes_count':video_obj.likes.all().count()})
