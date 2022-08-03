@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from . import models
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,8 +15,12 @@ def home(request):
     videos=models.Video.objects.all().order_by('-pub_date')
     all_videos=[]
     for video in videos:
-        all_videos+=[(video.id,video.title)]
+        if video.status=='I':
+            continue
+        all_videos+=[{'video ID':video.id,'Title':video.title,'publisher':video.user.user.username,'publication date':str(video.pub_date),'likes':video.likes.all().count(),'dislike':video.dislikes.all().count()}]
     return HttpResponse(all_videos)
+
+
 @csrf_exempt
 def upload_video(request):
     try:
@@ -217,6 +221,44 @@ def video_status(request):
     except:
         return HttpResponse('error')
 
-        
+
+@csrf_exempt
+def watch_video(request,video_id):
+    try:
+        video_obj=models.Video.objects.get(id=video_id)
+    except:
+        return HttpResponse('There is no video')
+    try:
+        user_obj=models.Users.objects.get(user__username=request.user)
+    except:
+        try:
+            admin_obj=models.Admin.objects.get(admin__username=request.user)
+        except:
+            return HttpResponse('You are not login to watch this video.')
+    video_comments= models.Comment.objects.filter(video=video_obj).order_by('-id')
+    video_likes=video_obj.likes.all().count()
+    video_dislikes=video_obj.dislikes.all().count()
+
+@csrf_exempt
+def strike_resolving(request,username):
+    try:
+        admin_obj = models.Admin.objects.get(admin__username=request.user)
+        user_obj=models.Users.objects.get(user__username=username)
+        if user_obj.status=='S':
+            user_obj.status='N'
+            user_obj.save()
+            return HttpResponse('The user removed from the strike mode')
+        else:
+            return HttpResponse('The user was not strike')
+    except:
+        return HttpResponse('error')
+
+      
 
 
+
+
+# # video_comments = Comment.objects.filter(post=video_obj).order_by('-id')
+# #     return JsonResponse({'comment':create_comment.comment, 'count_comments':video_comments.count()})
+
+# #return JsonResponse({'is_liked':is_liked,'likes_count':video_obj.likes.all().count()})

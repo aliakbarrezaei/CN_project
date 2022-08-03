@@ -15,4 +15,6 @@ urlpatterns = [
     path('video/add_dislike/', views.add_dislike, name='add_dislike'),
     path('video/add_lablel/', views.add_label, name='add_label'),
     path('video/make_unavailable/', views.video_status, name='status'),
+    path('video/<int:video_id>/', views.watch_video, name='watch_video'),
+    path('strike_resolving/<str:username>',views.strike_resolving, name='strike_resolving'),
 ]
