@@ -203,6 +203,14 @@ def video_status(request):
             if video_obj.status=='A':
                 video_obj.status='I'
                 video_obj.save()
+                user_object=video_obj.user
+                if user_object.status=='N':
+                    user_object.unavailable_videos_count+=1
+                    user_object.save()
+                    if user_object.unavailable_videos_count==2:
+                        user_object.status='S'
+                        user_object.save()
+                        return HttpResponse('The video became unavailable,and user has been striked')
                 return HttpResponse('The video became unavailable')
             else:
                 return HttpResponse('The video was unavailable')
