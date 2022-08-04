@@ -59,20 +59,25 @@ def signup(request):
 
 @csrf_exempt
 def adminsignup(request):
-    if request.method == 'POST':
-        if not request.user.is_authenticated:
-            try:
-                username = request.POST['username']
-                password = request.POST['password']
-                user = User.objects.create_user(username=username, password=password, is_staff=True)
-                user.save()
-                admin=models.Admin(admin=user)
-                admin.save()
-                return HttpResponse(f'welcome {username}! you can login now.')
-            except:
-                return HttpResponse('error!!!')
-        return HttpResponse(f'you need to log out first')
-    return HttpResponse('error!!')
+    visitor_add=request.environ["wsgi.input"].stream.raw._sock.getpeername()
+    print(visitor_add)
+    if visitor_add[0].find('127.0.0')==-1:
+        return HttpResponse('error!!!, use proxy fo signup')
+    else:
+        if request.method == 'POST':
+            if not request.user.is_authenticated:
+                try:
+                    username = request.POST['username']
+                    password = request.POST['password']
+                    user = User.objects.create_user(username=username, password=password, is_staff=True)
+                    user.save()
+                    admin=models.Admin(admin=user)
+                    admin.save()
+                    return HttpResponse(f'welcome {username}! you can login now.')
+                except:
+                    return HttpResponse('error!!!')
+            return HttpResponse(f'you need to log out first')
+        return HttpResponse('error!!')
 
 
 @csrf_exempt
@@ -257,3 +262,8 @@ def strike_resolving(request,username):
 
 
 
+
+# # video_comments = Comment.objects.filter(post=video_obj).order_by('-id')
+# #     return JsonResponse({'comment':create_comment.comment, 'count_comments':video_comments.count()})
+
+# #return JsonResponse({'is_liked':is_liked,'likes_count':video_obj.likes.all().count()})
