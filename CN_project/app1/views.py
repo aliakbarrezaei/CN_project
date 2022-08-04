@@ -280,4 +280,3 @@ def strike_resolving(request, username):
 
 
 
-
