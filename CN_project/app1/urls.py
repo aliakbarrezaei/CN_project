@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin_signup/', views.adminsignup, name='adminsignup'),
     path('logout/', views.user_logout, name='logout'),
     path('strike_resolving/<str:username>', views.strike_resolving, name='strike_resolving'),
+    path('manager_login/', views.manager_login, name='manager_login'),
     
     # ----------- videos -----------
     path('upload/', views.upload_video, name='upload'),
