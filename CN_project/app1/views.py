@@ -30,10 +30,15 @@ def profile(request):
     user = request.user
     username = user.username
     is_staff = user.is_staff
-    resp = f'username = {username}<br>is_staff = {is_staff}'
+    proxy_msg = ''
+    if request.user.is_staff and not request.user.is_superuser:
+        if not connected_to_proxy(request):
+            proxy_msg = 'you are not connected to proxy. if you dont have proxy information, send a ticket to manager.'
+
+    resp = f'username = {username}  <br>\nis_staff = {is_staff}   <br>\n{proxy_msg}'
     return HttpResponse(resp)
 
- 
+
 # ------------------------------------------  management -------------------------------------
 @csrf_exempt
 def signup(request):
@@ -55,25 +60,25 @@ def signup(request):
 
 @csrf_exempt
 def adminsignup(request):
-    visitor_add=request.environ["wsgi.input"].stream.raw._sock.getpeername()
+    '''visitor_add=request.environ["wsgi.input"].stream.raw._sock.getpeername()
     print(visitor_add)
     if visitor_add[0].find('127.0.0')==-1:
         return HttpResponse('error!!!, use proxy fo signup')
-    else:
-        if request.method == 'POST':
-            if not request.user.is_authenticated:
-                try:
-                    username = request.POST['username']
-                    password = request.POST['password']
-                    user = User.objects.create_user(username=username, password=password, is_staff=True)
-                    user.save()
-                    admin=models.Admin(admin=user)
-                    admin.save()
-                    return HttpResponse(f'welcome {username}! you can login now.')
-                except:
-                    return HttpResponse('error!!!')
-            return HttpResponse(f'you need to log out first')
-        return HttpResponse('error!!')
+    else:'''
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            try:
+                username = request.POST['username']
+                password = request.POST['password']
+                user = User.objects.create_user(username=username, password=password, is_staff=True)
+                user.save()
+                admin = models.Admin(admin=user)
+                admin.save()
+                return HttpResponse(f'welcome {username}! you can login now.')
+            except:
+                return HttpResponse('error!!!')
+        return HttpResponse(f'you need to log out first')
+    return HttpResponse('error!!')
 
 
 @csrf_exempt
@@ -144,6 +149,8 @@ def user_logout(request):
 @csrf_exempt
 def strike_resolving(request, username):
     try:
+        if not connected_to_proxy(request):
+            return HttpResponse('error: you are not connected to proxy.')
         admin_obj = models.Admin.objects.get(admin__username=request.user)
         user_obj = models.Users.objects.get(user__username=username)
         if user_obj.status == 'S':
@@ -152,8 +159,8 @@ def strike_resolving(request, username):
             return HttpResponse('The user removed from the strike mode')
         else:
             return HttpResponse('The user was not strike')
-    except:
-        return HttpResponse('error')
+    except Exception as e:
+        return HttpResponse(e)
 
 
 # ------------------------------------------  videos -------------------------------------
@@ -161,16 +168,16 @@ def strike_resolving(request, username):
 def upload_video(request):
     try:
         if request.method == 'POST':
-            MAX_UPLOAD_SIZE = 5242880
+            MAX_UPLOAD_SIZE = 52428800
             title = request.POST['title']
             video_file = request.FILES['video_file']
-            if video_file.size > MAX_UPLOAD_SIZE:
-                return HttpResponse(f'error: file size should be under 50MB.')
-            if not str(video_file).endswith('.mp4'):
-                return HttpResponse(f'file format should be .mp4')
-            
             user_obj = models.Users.objects.get(user__username=request.user)
+
             if user_obj.status == 'N':
+                if video_file.size > MAX_UPLOAD_SIZE:
+                    return HttpResponse(f'error: file size should be under 50MB.')
+                if not str(video_file).endswith('.mp4'):
+                    return HttpResponse(f'file format should be .mp4')
                 upload_video = models.Video(user=user_obj, title=title, video_file=video_file)
                 upload_video.save()
                 return HttpResponse('The video has been uploaded.')
@@ -179,12 +186,14 @@ def upload_video(request):
 
     except Exception as e:
         return HttpResponse('error')
-    
+
 
 @csrf_exempt
 def add_label(request):
     try:
         if request.method == 'POST':
+            if not connected_to_proxy(request):
+                return HttpResponse('error: you are not connected to proxy.')
             video_id = request.POST['video_id']
             admin_obj = models.Admin.objects.get(admin__username=request.user)
             video_obj = models.Video.objects.get(id=video_id)
@@ -204,6 +213,8 @@ def add_label(request):
 def video_status(request):
     try:
         if request.method == 'POST':
+            if not connected_to_proxy(request):
+                return HttpResponse('error: you are not connected to proxy.')
             video_id = request.POST['video_id']
             admin_obj = models.Admin.objects.get(admin__username=request.user)
             video_obj = models.Video.objects.get(id=video_id)
@@ -223,7 +234,7 @@ def video_status(request):
                 return HttpResponse('The video was unavailable')
     except:
         return HttpResponse('error')
-    
+
 
 @csrf_exempt
 @login_required
@@ -377,3 +388,11 @@ def watch_video(request, video_id):
     except models.Video.DoesNotExist:
         return HttpResponse(f'There is no video with id={video_id}')
 
+
+def connected_to_proxy(request):
+    visitor_add = request.environ["wsgi.input"].stream.raw._sock.getpeername()
+    print(visitor_add)
+    if visitor_add[0].find('127.0.0') == -1:
+        return False
+    else:
+        return True
