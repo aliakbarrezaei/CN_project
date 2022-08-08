@@ -161,8 +161,14 @@ def strike_resolving(request, username):
 def upload_video(request):
     try:
         if request.method == 'POST':
+            MAX_UPLOAD_SIZE = 5242880
             title = request.POST['title']
             video_file = request.FILES['video_file']
+            if video_file.size > MAX_UPLOAD_SIZE:
+                return HttpResponse(f'error: file size should be under 50MB.')
+            if not str(video_file).endswith('.mp4'):
+                return HttpResponse(f'file format should be .mp4')
+            
             user_obj = models.Users.objects.get(user__username=request.user)
             if user_obj.status == 'N':
                 upload_video = models.Video(user=user_obj, title=title, video_file=video_file)
@@ -171,7 +177,7 @@ def upload_video(request):
             else:
                 return HttpResponse('you are striked!!')
 
-    except:
+    except Exception as e:
         return HttpResponse('error')
     
 
