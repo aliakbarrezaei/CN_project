@@ -132,7 +132,7 @@
 
     $('#like-button').click(function () {
         $.ajax({
-            url: "{% url 'videos:add_like' video_id=video_id %}",
+            url: "{% url 'app1:add_like' video_id=video_id %}",
             type: 'get',
             dataType: 'JSON',
             success: function (response) {
@@ -142,7 +142,7 @@
     });
     $('#dislike-button').click(function () {
         $.ajax({
-            url: "{% url 'videos:add_dislike' video_id=video_id %}",
+            url: "{% url 'app1:add_dislike' video_id=video_id %}",
             type: 'get',
             dataType: 'JSON',
             success: function (response) {
@@ -152,7 +152,7 @@
     });
     $('#comment-submit').click(function () {
         $.ajax({
-            url: "{% url 'videos:add_comment' video_id=video_id %}",
+            url: "{% url 'app1:add_comment' video_id=video_id %}",
             type: 'post',
             data: {comment: $('#input-comment').val()},
             success: function (response) {
