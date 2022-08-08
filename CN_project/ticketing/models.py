@@ -15,6 +15,14 @@ class Ticket(models.Model):
     assignee = models.ForeignKey(User, related_name='assignee', null=True, blank=True, on_delete=models.CASCADE)
     status = models.CharField(max_length=25, choices=TicketStatus.choices, default=TicketStatus.OPEN)
 
+    def to_dict(self):
+        d = {'id': self.id,
+             'title': self.title,
+             'owner': self.owner.username,
+             'assignee': self.assignee.username if self.assignee else None,
+             'status': self.status}
+        return d
+
 
 class Message(models.Model):
     ticket = models.ForeignKey(Ticket, related_name='ticket', null=True, blank=True, on_delete=models.CASCADE)
