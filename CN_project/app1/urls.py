@@ -5,13 +5,16 @@ app_name = 'app1'
 urlpatterns = [
     path('', views.home, name='home'),
     path('profile/', views.profile, name='profile'),
-
+    
+    # ----------- management -----------
     path('login/', views.user_login, name='login'),
     path('signup/', views.signup, name='signup'),
     path('admin_login/', views.admin_login, name='adminlogin'),
     path('admin_signup/', views.adminsignup, name='adminsignup'),
     path('logout/', views.user_logout, name='logout'),
-
+    path('strike_resolving/<str:username>', views.strike_resolving, name='strike_resolving'),
+    
+    # ----------- videos -----------
     path('upload/', views.upload_video, name='upload'),
 
     path('video/<int:video_id>/', views.watch_video, name='watch_video'), # with socket
@@ -24,6 +27,5 @@ urlpatterns = [
 
     path('video/add_lablel/', views.add_label, name='add_label'),
     path('video/make_unavailable/', views.video_status, name='status'),
-    path('strike_resolving/<str:username>', views.strike_resolving, name='strike_resolving'),
 
 ]
