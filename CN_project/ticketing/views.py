@@ -11,8 +11,8 @@ from app1.models import User
 @login_required
 @user_passes_test(lambda user: not user.is_superuser)
 def my_tickets_view(request):
-    tickets = Ticket.objects.filter(owner=request.user).values()
-    return JsonResponse({"tickets": list(tickets)})
+    tickets = [ticket.to_dict() for ticket in Ticket.objects.filter(owner=request.user)]
+    return JsonResponse({"tickets": tickets})
 
 
 @csrf_exempt
@@ -31,7 +31,7 @@ def my_ticket_view(request, pk):
 
 
 def get_ticket_details(pk):
-    ticket_dict = model_to_dict(Ticket.objects.get(id=pk))
+    ticket_dict = Ticket.objects.get(id=pk).to_dict()
     messages = Message.objects.filter(ticket_id=pk)
     messages_list = [msg.to_dict() for msg in messages]
     d = {'ticket': ticket_dict, 'messages': messages_list}
@@ -92,31 +92,29 @@ def my_ticket_reply(request, pk):
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def assigned_tickets_view(request):
-    tickets = Ticket.objects.filter(assignee=request.user).values()
-    return JsonResponse({"tickets": list(tickets)})
+    tickets = [ticket.to_dict() for ticket in Ticket.objects.filter(assignee=request.user)]
+    return JsonResponse({"tickets": tickets})
 
 
 @csrf_exempt
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def user_ticket_view(request, pk):
-    if request.method == 'GET':
-        try:
-            ticket = Ticket.objects.get(id=pk)
-            if ticket.assignee != request.user:
-                raise Ticket.DoesNotExist
-            return JsonResponse(get_ticket_details(pk))
-        except Ticket.DoesNotExist:
-            return HttpResponse(f'invalid ticket id.')
+    try:
+        ticket = Ticket.objects.get(id=pk)
+        if ticket.assignee != request.user:
+            raise Ticket.DoesNotExist
+        return JsonResponse(get_ticket_details(pk))
+    except Ticket.DoesNotExist:
+        return HttpResponse(f'invalid ticket id.')
 
 
 @csrf_exempt
 @login_required
 @user_passes_test(lambda user: user.is_staff and not user.is_superuser)
 def unassigned_tickets_view(request):
-    if request.method == 'GET':
-        tickets = Ticket.objects.filter(assignee=None).values()
-        return JsonResponse({"tickets": list(tickets)})
+    tickets = [ticket.to_dict() for ticket in Ticket.objects.filter(assignee=None)]
+    return JsonResponse({"tickets": tickets})
 
 
 @csrf_exempt
@@ -143,9 +141,9 @@ def user_ticket_reply(request, pk):
         try:
             ticket = Ticket.objects.get(id=pk)
             if request.user == ticket.assignee and ticket.status != 'CLOSED':
+                text = request.POST['text']
                 ticket.status = 'SOLVED'
                 ticket.save()
-                text = request.POST['text']
                 message = Message.objects.create(ticket=ticket, user=request.user, text=text)
                 message.save()
             else:
@@ -160,14 +158,13 @@ def user_ticket_reply(request, pk):
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def user_ticket_close(request, pk):
-    if request.method == 'GET':
-        try:
-            ticket = Ticket.objects.get(id=pk)
-            if request.user == ticket.assignee and ticket.status != 'CLOSED':
-                ticket.status = 'CLOSED'
-                ticket.save()
-                return HttpResponse(f'successfully closed the ticket. (ticket status = {ticket.status})')
-            else:
-                return HttpResponse(f'you cant edit this ticket. (ticket status = {ticket.status})')
-        except Ticket.DoesNotExist:
-            return HttpResponse(f'invalid ticket id.')
+    try:
+        ticket = Ticket.objects.get(id=pk)
+        if request.user == ticket.assignee and ticket.status != 'CLOSED':
+            ticket.status = 'CLOSED'
+            ticket.save()
+            return HttpResponse(f'successfully closed the ticket. (ticket status = {ticket.status})')
+        else:
+            return HttpResponse(f'you cant edit this ticket. (ticket status = {ticket.status})')
+    except Ticket.DoesNotExist:
+        return HttpResponse(f'invalid ticket id.')
