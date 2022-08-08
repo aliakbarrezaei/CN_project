@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    .login-container {
+        padding: 44px;
+        width: 400px;
+        margin: 10% auto auto;
+        background-color: #333333;
+        border-radius: 8px;
+        font-family: Roboto, serif;
+    }
+
+    input[type=text], input[type=password] {
+        width: 100%;
+        padding: 10px 10px;
+        font-family: Roboto, serif;
+        margin: 10px 0;
+        background-color: #4d4d4d;
+        display: inline-block;
+        border: 1px solid #8c8c8c;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #ffffff;
+        box-sizing: border-box;
+    }
+    .btn {
+        background-color: #416dd9;
+        color: white;
+        padding: 14px 20px;
+        font-size: 17px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+{% if is_staff %}
+    <body style="background-color:#001c62;font-size: 20px;">
+    <form class="login-container" action="{% url 'management:adminlogin' %}" method="POST">
+
+    <div style="text-align: center;color: #8d8d8d">Admin Login</div>
+{% else %}
+    <body style="background-color:#1c1c1c;font-size: 20px;">
+    <form class="login-container" action="{% url 'management:login' %}" method="POST">
+{% endif %}
+<label for="username" style="color: #a5bdf8"><b>Username</b>
+    <input type="text" placeholder="Enter Username" name="username" required>
+</label>
+<label for="password" style="color: #9db2e5"><b>Password</b>
+    <input type="password" placeholder="Enter Password" name="password" required>
+</label>
+{% if error_message %}
+    <p style="color: red;font-size:17px">{{ error_message }}</p>
+{% endif %}
+<input name="login" type="submit" value="Login" class="btn btn-success"/>
+</form>
+</body>
+</html>
