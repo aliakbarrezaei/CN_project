@@ -50,7 +50,7 @@ def create_ticket(request):
             status = 'OPEN'
             assignee = None
             if request.user.is_staff:
-                assignee = User.objects.get(user__username='manager')
+                assignee = User.objects.get(username='manager')
                 status = 'PENDING'
 
             ticket = Ticket.objects.create(title=title, owner=owner, status=status, assignee=assignee)
@@ -58,7 +58,7 @@ def create_ticket(request):
             message = Message.objects.create(ticket=ticket, user=owner, text=text)
             message.save()
             return HttpResponse('successfully added ticket.')
-        except:
+        except Exception as e:
             return HttpResponse('error')
 
 
