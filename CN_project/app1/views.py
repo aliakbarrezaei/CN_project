@@ -140,6 +140,22 @@ def admin_login(request):
 
 
 @csrf_exempt
+def manager_login(request):
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            username = request.POST['username']
+            password = request.POST['password']
+            check_user = authenticate(username=username, password=password)
+            if check_user is not None:
+                login(request, check_user)
+                return redirect('app1:profile')
+            else:
+                return HttpResponse('Incorrect username and / or password.')
+    else:
+        return HttpResponse(f'you need to log out first')
+
+
+@csrf_exempt
 @login_required
 def user_logout(request):
     logout(request)
