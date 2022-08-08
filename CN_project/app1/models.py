@@ -1,34 +1,9 @@
-from django.db import models
 from django.contrib.auth.models import User
-import pickle, socket, cv2, struct, threading
+from django.db import models
+import os, re
 
 
-class Video(models.Model):
-    user = models.ForeignKey('Users', on_delete=models.CASCADE)
-    title = models.CharField(max_length=100)
-    video_file = models.FileField(upload_to='videos/')
-    pub_date = models.DateField(auto_now_add=True)
-    likes = models.ManyToManyField('Users', related_name='likes')
-    dislikes = models.ManyToManyField('Users', related_name='dislike')
-    video_status = (('A', 'accessible'), ('I', 'inaccessible'))
-    label_status = (('L', 'limited'), ('U', 'unlimited'))
-    label = models.CharField(max_length=1, choices=label_status, default='U', help_text='label status')
-    status = models.CharField(max_length=1, choices=video_status, default='A', help_text='Video status')
-
-    def __str__(self):
-        return '%s , %s,  like_count: %s, dislike_count: %s' % (
-            self.title, self.video_file, self.likes.all().count(), self.dislikes.all().count())
-
-
-class Comment(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE)
-    user = models.ForeignKey('Users', on_delete=models.CASCADE)
-    comment = models.CharField(max_length=300)
-
-    def __str__(self):
-        return ('%s, %s ,%s') % (self.user.user, self.video, self.comment)
-
-
+# ------------------------------------------  management -------------------------------------
 class Users(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     strike_status = (('S', 'striked'), ('N', 'non-striked'))
@@ -56,38 +31,79 @@ class Admin(models.Model):
         verbose_name_plural = 'Admin management'
 
 
-class Client:
-    def __init__(self, IP, PORT, video_path):
-        self.IP = IP
-        self.PORT = PORT
-        self.video_path = video_path
-        thread = threading.Thread(target=self.stream_video)
-        thread.start()
+# ------------------------------------------  videos -------------------------------------
 
-    def stream_video(self):
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((self.IP, self.PORT))
+def user_vote(user_obj, video_obj):
+    if user_obj in video_obj.likes.all():
+        return 'liked'
+    elif user_obj in video_obj.dislikes.all():
+        return 'disliked'
+    return ''
 
-        client_socket.sendall(self.video_path.encode('utf-8'))
 
-        payload_size = struct.calcsize("L")
-        data = client_socket.recv(payload_size)
-        frames_num = struct.unpack("L", data)[0]
+class Video(models.Model):
+    user = models.ForeignKey('Users', on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    video_file = models.FileField(upload_to='videos/')
+    pub_date = models.DateField(auto_now_add=True)
+    likes = models.ManyToManyField('Users', related_name='likes')
+    dislikes = models.ManyToManyField('Users', related_name='dislike')
+    video_status = (('A', 'accessible'), ('I', 'inaccessible'))
+    label_status = (('L', 'limited'), ('U', 'unlimited'))
+    label = models.CharField(max_length=1, choices=label_status, default='U', help_text='label status')
+    status = models.CharField(max_length=1, choices=video_status, default='A', help_text='Video status')
 
-        for frame_num in range(frames_num):
-            data = b''
-            packed_msg_size = client_socket.recv(payload_size)
-            msg_size = struct.unpack("L", packed_msg_size)[0]
-            remaining_msg_size = msg_size
+    def __str__(self):
+        return '%s , %s,  like_count: %s, dislike_count: %s' % (
+            self.title, self.video_file, self.likes.all().count(), self.dislikes.all().count())
 
-            while remaining_msg_size != 0:
-                data += client_socket.recv(remaining_msg_size)
-                remaining_msg_size = msg_size - len(data)
+    def like_count(self):
+        return self.likes.all().count()
 
-            frame_data = data
-            frame = pickle.loads(frame_data)
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) in [ord('q'), 27]:
-                break
+    def dislike_count(self):
+        return self.dislikes.all().count()
 
-        client_socket.close()
+    def get_path(self):
+        path = str(os.path.dirname(os.path.abspath("__file__")).replace('\\', '/').replace('/app1', ''))
+        return path + '/media/' + str(self.video_file)
+
+
+class Comment(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    user = models.ForeignKey('Users', on_delete=models.CASCADE)
+    comment = models.CharField(max_length=300)
+
+    def __str__(self):
+        return ('%s, %s ,%s') % (self.user.user, self.video, self.comment)
+
+
+range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+
+class RangeFileWrapper(object):
+    def __init__(self, file, chunksize=4096, offset=0, length=None):
+        self.file = file
+        self.file.seek(offset, os.SEEK_SET)
+        self.remaining = length
+        self.chunksize = chunksize
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.remaining:
+            data = self.file.read(self.chunksize)
+            if data:
+                return data
+            raise StopIteration()
+        else:
+            if self.remaining <= 0:
+                raise StopIteration()
+            data = self.file.read(min(self.remaining, self.chunksize))
+            if not data:
+                raise StopIteration()
+            self.remaining -= len(data)
+            return data
+
+    def close(self):
+        self.file.close()
