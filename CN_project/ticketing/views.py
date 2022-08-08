@@ -122,6 +122,8 @@ def unassigned_tickets_view(request):
 @user_passes_test(lambda user: user.is_staff and not user.is_superuser)
 def assign_ticket(request, pk):
     try:
+        if not connected_to_proxy(request):
+            return HttpResponse('error: you are not connected to proxy.')
         ticket = Ticket.objects.get(id=pk)
         if ticket.assignee is not None:
             return HttpResponse('cannot assign this ticket.')
@@ -138,6 +140,8 @@ def assign_ticket(request, pk):
 @user_passes_test(lambda user: user.is_staff)
 def user_ticket_reply(request, pk):
     if request.method == 'POST':
+        if not request.user.is_superuser and not connected_to_proxy(request):
+            return HttpResponse('error: you are not connected to proxy.')
         try:
             ticket = Ticket.objects.get(id=pk)
             if request.user == ticket.assignee and ticket.status != 'CLOSED':
@@ -158,6 +162,8 @@ def user_ticket_reply(request, pk):
 @login_required
 @user_passes_test(lambda user: user.is_staff)
 def user_ticket_close(request, pk):
+    if not request.user.is_superuser and not connected_to_proxy(request):
+        return HttpResponse('error: you are not connected to proxy.')
     try:
         ticket = Ticket.objects.get(id=pk)
         if request.user == ticket.assignee and ticket.status != 'CLOSED':
@@ -168,3 +174,12 @@ def user_ticket_close(request, pk):
             return HttpResponse(f'you cant edit this ticket. (ticket status = {ticket.status})')
     except Ticket.DoesNotExist:
         return HttpResponse(f'invalid ticket id.')
+
+
+def connected_to_proxy(request):
+    visitor_add = request.environ["wsgi.input"].stream.raw._sock.getpeername()
+    print(visitor_add)
+    if visitor_add[0].find('127.0.0') == -1:
+        return False
+    else:
+        return True
