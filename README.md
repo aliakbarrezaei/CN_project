@@ -33,10 +33,11 @@
  | `watch/{video_id}/add_like/` | GET |  | :white_check_mark: | :white_large_square: | :white_large_square: |  | 
  | `watch/{video_id}/add_dislike/` | GET |  | :white_check_mark: | :white_large_square: | :white_large_square: |  | 
  | `watch/{video_id}/add_comment/` | POST | comment | :white_check_mark: | :white_large_square: | :white_large_square: |  | 
- | `video/add_lablel/` | POST | video_id | :white_large_square: | :white_check_mark: | :white_check_mark: |  | 
- | `video/make_unavailable/` | POST | video_id | :white_large_square: | :white_check_mark: | :white_check_mark: |  | 
+ | `video/add_lablel/` | POST | video_id | :white_large_square: | :white_check_mark: | :white_check_mark: | adding warning label to the video | 
+ | `video/make_unavailable/` | POST | video_id | :white_large_square: | :white_check_mark: | :white_check_mark: | (user will get strike if +2 videos are removed) | 
  
  ### Ticketing System ###
+ tickets statuses: `OPEN`, `PENDING`, `SOLVED`, `CLOSED`
  | path | method | POST fields | user | admin | proxy | description | 
  | --- | :---: | --- | :---: | :---: | :---: | --- | 
  | `tickets/my/` | GET |  | :white_check_mark: | :white_check_mark: | :white_large_square: | list of tickets created by user | 
