@@ -7,6 +7,7 @@
   - three level/roles: normal user, admin, manager
 - Proxy Server (for admin access)
 - Ticketing System
+  - users can send tickets to admins, and admins can send tickets to manager 
 - iptables rules for basic DDoS Attack
 
 
