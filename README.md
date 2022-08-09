@@ -36,7 +36,7 @@
  | `video/make_unavailable/` | POST | video_id | :white_large_square: | :white_check_mark: | :white_check_mark: |  | 
  
  ### Ticketing System ###
- | path | method | user | admin | proxy | POST fields | description | 
+ | path | method | POST fields | user | admin | proxy | description | 
  | --- | :---: | --- | :---: | :---: | :---: | --- | 
  | `tickets/my/` | GET |  | :white_check_mark: | :white_check_mark: | :white_large_square: | list of tickets created by user | 
  | `tickets/my/new/` | POST | title, text | :white_check_mark: | :white_check_mark: | :white_large_square: | create new ticket | 
